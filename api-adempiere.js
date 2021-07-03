@@ -9,6 +9,8 @@ var sucursal = require('./controller/mongoose/ctlSucursal');
 var saleorder = require('./controller/mongoose/ctlSaleOrder');
 var preregistro = require('./controller/mongoose/ctlPreRegistro');
 var socioNegocio = require('./controller/mongoose/ctlSocioNegocio');
+var foro = require('./controller/mongoose/ctlForo');
+var queja = require('./controller/mongoose/ctlQuejaSugerencia');
 
 const app = express();
 app.use(cors());
@@ -21,7 +23,10 @@ app.use('/shopingcar', shopingcar);
 app.use('/sucursal', sucursal);
 app.use('/saleorder', saleorder);
 app.use('/preregistro', preregistro);
-app.use('/partner', socioNegocio); 
+app.use('/partner', socioNegocio);
+app.use('/foro', foro);
+app.use('/queja', queja);
+
 const mongoose = require('mongoose'); 
 
 mongoose.connect('mongodb://74.208.159.188:27017/e-commers', {

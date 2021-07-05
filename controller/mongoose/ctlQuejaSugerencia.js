@@ -7,6 +7,63 @@ const Queja = require('../../models/mongoose/queja');
 const QuejaRespuesta = require('../../models/mongoose/queja_respuesta'); 
 const sequens = require('../../models/mongoose/sequens'); 
 
+// ADMIN
+router.get('/get_all', (req, res, next) => {
+    let token = req.headers.token;
+    jwt.verify(token, secretKey, (err, decoded) => {
+    if (err){
+        return res.status(200).json({ status: 'unauthorized'})
+    }else{
+      Queja.find({}, 
+        (err, queja) => { 
+        if (err) return res.status(200).json({ status: 'error',data:err});
+        if (!queja) return res.status(200).json({ status:"success", data:""});
+        return res.status(200).json({status:"success", data: queja})
+      }); 
+    }
+  })
+});
+
+router.get('/get_all_answer', (req, res, next) => {
+  let token = req.headers.token;
+  jwt.verify(token, secretKey, (err, decoded) => {
+  if (err){
+      return res.status(200).json({ status: 'unauthorized'})
+  }else{
+    //console.log(req.query);
+    let preguntass = req.query;
+    QuejaRespuesta.find(req.query, 
+      (err, queja_respuesta) => { 
+      if (err) return res.status(200).json({ status: 'error',data:err});
+      if (!queja_respuesta) return res.status(200).json({ status:"success", data:""});
+      return res.status(200).json({status:"success", data: queja_respuesta})
+    }); 
+  }
+})
+});
+
+
+router.post('/add_answer_admin',  (req, res, next) => { 
+  let token = req.headers.token;  
+  jwt.verify(token, secretKey,async (err, decoded) => {
+    if (err){
+      return res.status(200).json({ status: 'unauthorized1' , data :err}  )
+    }else{
+      if(decoded==undefined)return res.status(200).json({ status: 'unauthorized2'})
+      else if (decoded.rol != 'admin')return res.status(200).json({ status: 'unauthorized3'})
+      let respuesta = req.body;
+      console.log(respuesta);
+      var queja_respuesta = new QuejaRespuesta(respuesta); 
+      queja_respuesta.save(function(err, doc) { 
+        if (err){return res.status(200).json({ status:"error", data:err});} 
+        return res.status(200).json({status:"success", data: doc})
+      }); 
+    }
+  })
+});
+
+
+// USER
 router.get('/get_user_complain', (req, res, next) => {
     let token = req.headers.token;
     jwt.verify(token, secretKey, (err, decoded) => {

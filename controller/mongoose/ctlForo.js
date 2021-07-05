@@ -108,10 +108,8 @@ router.get('/get_all_answer', (req, res, next) => {
   if (err){
       return res.status(200).json({ status: 'unauthorized'})
   }else{
-
-    console.log(req.query);
+    //console.log(req.query);
     let preguntass = req.query;
-
     Respuesta.find(req.query, 
       (err, respuesta) => { 
       if (err) return res.status(200).json({ status: 'error',data:err});
@@ -141,5 +139,28 @@ router.post('/add_answer_user',  (req, res, next) => {
   })
 });
 
+
+router.get('/get_all_answer_question', (req, res, next) => {
+  let token = req.headers.token;
+  jwt.verify(token, secretKey, (err, decoded) => {
+  if (err){
+      return res.status(200).json({ status: 'unauthorized'})
+  }else{
+
+    let question =req.query.respuesta;
+        console.log(question);
+        // const { search } = JSON.stringify(req.query);
+        // const rgx = (question) => new RegExp(`.*${question}.*`);
+        // const searchRgx = rgx(search);
+        const userRegex = new RegExp(question, 'i')
+        Respuesta.find({respuesta: userRegex}, 
+      (err, respuesta) => { 
+      if (err) return res.status(200).json({ status: 'error',data:err});
+      if (!respuesta) return res.status(200).json({ status:"success", data:""});
+      return res.status(200).json({status:"success", data: respuesta})
+    }); 
+  }
+})
+}); 
   
 module.exports = router;

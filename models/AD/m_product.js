@@ -48,6 +48,19 @@ module.exports = {
         );
         return result;
     }, 
+    async novedades() {  
+        const values = [];  
+        var query = fs.readFileSync("./models/AD/sql/product/productosNovedad.sql","utf8");   
+        const result = await conexion.query(query, values)
+            .then(res => {
+                return {status:"success","data":res.rows};
+            }).catch( e => {
+                console.log(e);
+                return {status:"error","data":e.stack}; 
+            }
+        );
+        return result;
+    }, 
     async one(filter) {  
         const values = [filter];  
         var query = fs.readFileSync("./models/AD/sql/product/productoGeneral.sql","utf8");  

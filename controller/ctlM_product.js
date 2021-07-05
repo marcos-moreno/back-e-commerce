@@ -13,6 +13,17 @@ router.get('/all', function (req, res, next) {
         }); 
 }); 
 
+router.get('/novedades', function (req, res, next) {
+    productosModel
+        .novedades()
+        .then(productos => { 
+            res.json(productos);
+        }).catch(err => { 
+            console.log(err);
+            return res.status(200).send({status:"error",data:err});
+        }); 
+}); 
+ 
 router.get('/imgByValue', function (req, res, next) { 
     productosModel
         .imgByValue(req.query.filter)

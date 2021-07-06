@@ -41,7 +41,6 @@ module.exports = {
     }, 
     async rf_movement_ecomers(order,productos,idProdRegalo) {
         const values = [order,productos,idProdRegalo]; 
-        console.log(values);
         var query = fs.readFileSync("./models/AD/sql/order/rf_movement_ecomers.sql","utf8");  
         const result = await conexion.query(query, values)
         .then(res => {

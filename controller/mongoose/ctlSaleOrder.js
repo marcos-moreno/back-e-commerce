@@ -11,7 +11,7 @@ var clientWS = null;
 const Mail = require("../../models/mail.js");
 const layoutsEmail = require("../../layout/emails.js");
 const config = require('../config.js'); 
-
+const motoXregalo = 100;
 var login = {
   "tns:user":"sistemas.refividrio","tns:pass":"DevTI-Web_Service#21.",
   "tns:lang":192,"tns:ClientID":1000000,"tns:RoleID":1000016,
@@ -141,9 +141,14 @@ router.post('/add_auth_with_ad',async (req, res, next) => {
     if (orderAd.status == "success") {//:::::::::Si la orden se creó de forma correcta 
       //:::::::::Crear y completar traspaso
       let idProd = "0";
-      if (parseFloat(saleOrder.grandtotal) >= 5000) {
+      if (parseFloat(saleOrder.grandtotal) >= motoXregalo) {
         idProd = saleOrder.productoregalo;
       };
+
+      // console.log([saleOrder.documentno
+      //   ,JSON.stringify(saleOrder.productos)
+      //   ,idProd]);
+
       const movementAd = await OrderModel.rf_movement_ecomers(
         saleOrder.documentno
         ,JSON.stringify(saleOrder.productos)
@@ -154,10 +159,20 @@ router.post('/add_auth_with_ad',async (req, res, next) => {
       if (movementAd.status == "success") { 
         saleOrder.resultMovement = movementAd.data;
 
-        console.log("Completar RF_Movement_Complete_PS: " + movementAd.data.m_movement_id);
         saleOrder.resultMovementComplete = await completeDocument("RF_Movement_Complete_PS",movementAd.data.m_movement_id,"CO");
-        console.log("Completar RF_Movement_Complete_PS: " + movementAd.data.m_movement_id);
-
+        
+        if (parseFloat(saleOrder.grandtotal) >= motoXregalo) {
+          if (movementAd.data != undefined ) {
+            if (movementAd.data.m_inventory_id_regalo != undefined) {
+              if (parseInt(movementAd.data.m_inventory_id_regalo)> 1) {
+                saleOrder.resultSalidaRegaloComplete = 
+                await completeDocument("RF_Complete_Inventory_EC",movementAd.data.m_inventory_id_regalo,"CO");
+                await saleOrder.save();
+              }
+            }
+          }
+        }; 
+        
       }else{
         saleOrder.resultMovementComplete = movementAd;
       }
@@ -165,9 +180,9 @@ router.post('/add_auth_with_ad',async (req, res, next) => {
       //:::::::::Crear y completar traspaso
 
       //:::::::::Completar Orden
-      console.log("Completar Orden: " + saleOrder.c_order_id);
+      // console.log("Completar Orden: " + saleOrder.c_order_id);
       saleOrder.resultOrderComplete = await completeDocument("RF_Order_Complete_PS",saleOrder.c_order_id,"CO");
-      console.log("FIN Completar Orden: " + saleOrder.c_order_id);
+      // console.log("FIN Completar Orden: " + saleOrder.c_order_id);
       await saleOrder.save(); 
       //:::::::::Completar Orden 
       
@@ -193,9 +208,9 @@ router.post('/add_auth_with_ad',async (req, res, next) => {
             saleOrder.documentnoInvoice = "-"; 
           }else if (invoiceAD.status == "success") {//:::::::::Si las lineas se crearón de forma correcta se completa la factura
             saleOrder.documentnoInvoice = invoiceAD.data.documentno; 
-            console.log("Inicio de ejecución completeDocumentInvoiced");
+            // console.log("Inicio de ejecución completeDocumentInvoiced");
             saleOrder.resultcompleteInvoiceWS = await completeDocument("RF_Invoice_Complete_PS",saleOrder.c_invoice_id,"CO"); //completeDocumentInvoiced(saleOrder.c_invoice_id);
-            console.log("Termino de ejecución completeDocumentInvoiced");
+            // console.log("Termino de ejecución completeDocumentInvoiced");
             await saleOrder.save();
             if (pagado){//:::::::::Si esta pagado se inserta el pago y se completa
               let invoiceValid = await insertAD_C_Payment(saleOrder);
@@ -375,7 +390,7 @@ async function sendEmailCompraFinalizada(saleOrder,subject,isEmpleados) {
   const respuestaMail = await Mail.sendEmail(mailOptions);
   return respuestaMail;
 } 
-async function insertAD_C_Payment(saleOrder) { 
+async function insertAD_C_Payment(saleOrder) {
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     const conectionWS = await startClient(config.urlWSDLADempiere);  
@@ -527,7 +542,7 @@ async function completeDocument(serviceType,recordID,docAction) {
           "tns:user":"sistemas.refividrio","tns:pass":"DevTI-Web_Service#21.",
           "tns:lang":192,"tns:ClientID":1000000,"tns:RoleID":1000016,
           "tns:OrgID":0,"tns:WarehouseID":0,"tns:stage":0
-        }; 
+        };
         // if (serviceType == "RF_Movement_Complete_PS") {
         //   loginParticular["tns:RoleID"] = 1000016;
         //   loginParticular["tns:OrgID"] = 1000032;

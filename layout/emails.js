@@ -372,11 +372,13 @@ module.exports = {
             </center>
             <br>
         `; 
-        if (parseFloat(data.grandtotal)>=60) {
+        if (parseFloat(data.grandtotal)>=5000) {
             if (data.productoregalo.toString() == "1018346") {
                 entrega += `
                 <center>
-                <p>Has recibido un regalo por tu compra superior a $5,000 MXN</p>
+                <p>${isEmployee == false?'Has recibido un regalo por tu compra superior a $5,000 MXN'
+                    :'Favor de incluir el regalo del cliente.'    
+                }</p>
                 <table>
                 <tr style='height: 100px;'>
                 <td ><img width="100" src="https://refividrio.com.mx/imgdis/P15UN0978.jpg"></td> 
@@ -389,7 +391,9 @@ module.exports = {
             if (data.productoregalo.toString() == "1018347") {
                 entrega += `
                 <center>
-                <p>Has recibido un regalo por tu compra superior a $5,000 MXN</p>
+                <p>${isEmployee == false?'Has recibido un regalo por tu compra superior a $5,000 MXN'
+                    :'Favor de incluir el regalo del cliente.'    
+                }</p>
                 <table>
                 <tr style='height: 100px;'>
                 <td ><img width="100" src="https://refividrio.com.mx/imgdis/P15UN0979.jpg"></td> 

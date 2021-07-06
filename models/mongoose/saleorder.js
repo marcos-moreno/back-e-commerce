@@ -45,6 +45,8 @@ const saleorder = new Schema({
   fechaprometidatexto : {type: String, required: false, max: 1000,trim: true},
   requiresdate : {type: Boolean, required: false,default:false},
   productoregalo : {type: String, required: false, max: 20,trim: true},   
+
+  resultSalidaRegaloComplete : {type:Object,required: false},
 });
 
 const SaleOrder = mongoose.model('SaleOrder', saleorder);

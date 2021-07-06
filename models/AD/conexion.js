@@ -30,9 +30,9 @@ module.exports = pool;
 
 // const pool = new Pool({
 //     user: 'postgres',
-//     // host: '172.16.103.113',
-//     host: 'pruebas.refividrio.com.mx',
-//     database: 'Hoods300121',
+//     host: '172.16.103.113',
+//     //host: 'pruebas.refividrio.com.mx',
+//     database: 'RFV03072021',
 //     password: '@d3mp13r3',
 //     port: 55432,
 //     schema: 'adempiere',

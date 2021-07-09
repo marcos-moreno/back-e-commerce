@@ -9,9 +9,13 @@ module.exports = {
         if (params.onliStock == true || params.onliStock == 'true') {
             query = query.replace("--#1","AND Mex_.Mex_quantytotal > 0");
         }  
-        if (params.range.length == 2) {
-            query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND (${params.range[1]} + 1)`);
+
+        if (params.range =! undefined) {
+            if (params.range.length == 2) {
+                query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND (${params.range[1]} + 1)`);
+            }
         }
+      
         
         // ::: Filtrar empresa 
         if (params.marcasfiltradas != "#" && params.marcasfiltradas != undefined) {
@@ -22,7 +26,7 @@ module.exports = {
         if (params.intencidadesfiltradas != undefined) {
             switch (params.intencidadesfiltradas) {
                 case "#":
-                    query = query.replace("--#4",`AND p.m_class_intensity_id IS NULL`);
+                    query = query.replace("--#4",``);
                     break;
                 case "1000002,1000001,1000000":
                     query = query.replace("--#4",`AND (p.m_class_intensity_id IN (${params.intencidadesfiltradas})
@@ -58,7 +62,8 @@ module.exports = {
             query = query.replace("/*****",''); 
             query = query.replace("****/",''); 
             query = query.replace("ORDER BY value ASC",`ORDER BY totalfac DESC`); 
-        }   
+        } 
+        // console.log(query);  
         const result = await conexion.query(query, values)
             .then(res => {
                 return {status:"success","data":res.rows};

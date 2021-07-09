@@ -105,72 +105,48 @@ module.exports = {
                 DISTINCT(marca.name) AS marca,marca.M_Product_Group_ID
                 ,'M_Product_Group_ID' as field,true As isview
                 FROM adempiere.m_product p     
-                LEFT JOIN adempiere.M_Product_Group marca ON marca.M_Product_Group_ID=p.M_Product_Group_ID   
-                INNER JOIN LATERAL   
-                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
-                    FROM adempiere.m_storage stg  
-                    WHERE stg.M_Product_ID = p.M_Product_ID 
-                ) AS total  ON true 
-                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
-                    AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
-                    AND  total.total > 0 `;
+                LEFT JOIN adempiere.M_Product_Group marca ON marca.M_Product_Group_ID=p.M_Product_Group_ID    
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'    
+                AND marca.M_Product_Group_ID <> 1000005 AND marca.isActive = 'Y'`;
             break;
             case 'categoria':
-                query = `SELECT DISTINCT(categoria.name) AS categoria,categoria.M_Product_Category_ID
-                ,'M_Product_Category_ID' as field,true As isview,false As is_active
-                 FROM adempiere.m_product p     
-                INNER JOIN adempiere.M_Product_Category categoria ON categoria.M_Product_Category_ID=p.M_Product_Category_ID
-                INNER JOIN LATERAL   
-                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
-                    FROM adempiere.m_storage stg  
-                    WHERE stg.M_Product_ID = p.M_Product_ID 
-                ) AS total  ON true 
-                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
-                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
-                AND  total.total > 0 `;
+                query = `SELECT 
+                    DISTINCT(categoria.name) AS categoria
+                    ,categoria.M_Product_Category_ID
+                    ,'M_Product_Category_ID' as field,true As isview,false As is_active
+                FROM adempiere.m_product p     
+                INNER JOIN adempiere.M_Product_Category categoria ON categoria.M_Product_Category_ID=p.M_Product_Category_ID AND categoria.isActive = 'Y'
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'`;
             break;
             case 'presentacion':
-                query = `SELECT DISTINCT(presentacion.name) AS presentacion,
-                presentacion.M_Presentation_ID,'M_Presentation_ID' as field,true As isview
+                query = `
+                SELECT DISTINCT(presentacion.name) AS presentacion,
+                    presentacion.M_Presentation_ID,'M_Presentation_ID' as field,true As isview
                 FROM adempiere.m_product p     
-                INNER JOIN adempiere.M_Presentation presentacion ON presentacion.M_Presentation_ID=p.M_Presentation_ID
-                INNER JOIN LATERAL   
-                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
-                    FROM adempiere.m_storage stg  
-                    WHERE stg.M_Product_ID = p.M_Product_ID 
-                ) AS total  ON true 
-                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
-                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
-                AND  total.total > 0 `;
+                INNER JOIN adempiere.M_Presentation presentacion ON presentacion.M_Presentation_ID=p.M_Presentation_ID AND presentacion.isActive = 'Y'     
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'  `;
             break;
             case 'intencidad':
-                query = `SELECT DISTINCT(intencidad.name) AS intencidad,
-                intencidad.M_Class_Intensity_ID,'M_Class_Intensity_ID' as field ,true As isview
+                query = `SELECT 
+                    DISTINCT(intencidad.name) AS intencidad,
+                    intencidad.M_Class_Intensity_ID,'M_Class_Intensity_ID' as field ,true As isview
                 FROM adempiere.m_product p     
-                INNER JOIN adempiere.M_Class_Intensity intencidad ON intencidad.M_Class_Intensity_ID=p.M_Class_Intensity_ID
-                INNER JOIN LATERAL   
-                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
-                    FROM adempiere.m_storage stg  
-                    WHERE stg.M_Product_ID = p.M_Product_ID 
-                ) AS total  ON true 
-                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
-                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0 
-                AND  total.total > 0 `;
+                INNER JOIN adempiere.M_Class_Intensity intencidad 
+                    ON intencidad.M_Class_Intensity_ID=p.M_Class_Intensity_ID 
+                    AND intencidad.isActive = 'Y'
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'`;
             break;
             case 'sub_categoria':
-                query = `SELECT DISTINCT(sub_categoria.name) AS sub_categoria,sub_categoria.M_Product_Classification_ID
-                ,'M_Product_Classification_ID' as field,true As isview
+                query = `SELECT 
+                    DISTINCT(sub_categoria.name) AS sub_categoria
+                    ,sub_categoria.M_Product_Classification_ID
+                    ,'M_Product_Classification_ID' as field,true As isview
                 FROM adempiere.m_product p     
-                INNER JOIN adempiere.M_Product_Classification sub_categoria ON sub_categoria.M_Product_Classification_ID=p.M_Product_Classification_ID  
-                INNER JOIN LATERAL   
-                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
-                    FROM adempiere.m_storage stg  
-                    WHERE stg.M_Product_ID = p.M_Product_ID 
-                ) AS total  ON true 
-                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
-                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0 
-                AND sub_categoria.M_Product_Category_ID = $1
-                AND  total.total > 0 `;
+                INNER JOIN adempiere.M_Product_Classification sub_categoria 
+                    ON sub_categoria.M_Product_Classification_ID=p.M_Product_Classification_ID
+                    AND sub_categoria.isActive = 'Y'
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%' 
+                AND sub_categoria.M_Product_Category_ID = $1`;
                 values = [params.m_product_category_id];
             break;
         }

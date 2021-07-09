@@ -10,7 +10,7 @@ module.exports = {
             query = query.replace("--#1","AND Mex_.Mex_quantytotal > 0");
         }  
         if (params.range.length == 2) {
-            query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND ${params.range[1]}`);
+            query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND (${params.range[1]} + 1)`);
         }
         
         // ::: Filtrar empresa 
@@ -58,8 +58,7 @@ module.exports = {
             query = query.replace("/*****",''); 
             query = query.replace("****/",''); 
             query = query.replace("ORDER BY value ASC",`ORDER BY totalfac DESC`); 
-        }  
-        // console.log(query);
+        }   
         const result = await conexion.query(query, values)
             .then(res => {
                 return {status:"success","data":res.rows};

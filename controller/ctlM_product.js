@@ -34,4 +34,16 @@ router.get('/imgByValue', function (req, res, next) {
         }); 
 });  
 
+
+router.get('/getattributes', function (req, res, next) {
+    productosModel
+        .getattributes(req.query)
+        .then(tributos => { 
+            res.json(tributos);
+        }).catch(err => { 
+            console.log(err);
+            return res.status(200).send({status:"error",data:err});
+        }); 
+}); 
+
 module.exports = router;

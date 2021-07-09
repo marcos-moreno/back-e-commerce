@@ -12,18 +12,40 @@ module.exports = {
         if (params.range.length == 2) {
             query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND ${params.range[1]}`);
         }
-        if (params.andalucia == 'false' && params.ld == 'false' ) {
-            query = query.replace("--#3",`AND p.name = ''`);
-        }else{
-            if (params.andalucia == 'false' || params.ld == 'false' ) { 
-                if (params.andalucia == 'false'){
-                    query = query.replace("--#3",`AND p.name NOT LIKE '%ANDALUCIA%'`);
-                }
-                if (params.ld == 'false'){
-                    query = query.replace("--#3",`AND p.name LIKE '%ANDALUCIA%' `);
-                }
-            }
+        
+        // ::: Filtrar empresa 
+        if (params.marcasfiltradas != "#" && params.marcasfiltradas != undefined) {
+            query = query.replace("--#3",`AND p.M_Product_Group_ID IN (${params.marcasfiltradas})`);
         }
+
+        // ::: Filtrar intencidades 
+        if (params.intencidadesfiltradas != undefined) {
+            switch (params.intencidadesfiltradas) {
+                case "#":
+                    query = query.replace("--#4",`AND p.m_class_intensity_id IS NULL`);
+                    break;
+                case "1000002,1000001,1000000":
+                    query = query.replace("--#4",`AND (p.m_class_intensity_id IN (${params.intencidadesfiltradas})
+                    OR p.m_class_intensity_id IS NULL)`);
+                    break;
+                default:
+                    query = query.replace("--#4",`AND p.m_class_intensity_id IN (${params.intencidadesfiltradas})`);
+                    break;
+            }  
+        }
+        
+        if (params.categorias_group != undefined) { 
+            if (params.categorias_group != "#") {  
+                query = query.replace("--#5",`AND p.M_Product_Category_ID IN (${params.categorias_group})`); 
+            } 
+        }
+
+        if (params.sub_categorias_group != undefined) { 
+            if (params.sub_categorias_group != "#") { 
+                query = query.replace("--#6",`AND p.M_Product_Classification_ID IN (${params.sub_categorias_group})`); 
+            } 
+        }
+ 
         if (params.ordenMenorP == 'true') {
             query = query.replace("ORDER BY value ASC",`ORDER BY l0 ASC`); 
         }
@@ -74,6 +96,94 @@ module.exports = {
         );
         return result;
     },   
+    async getattributes(params) {
+        let values = []; 
+        var query = '';  
+        switch (params.type) {
+            case 'marcas':
+                query = `SELECT
+                DISTINCT(marca.name) AS marca,marca.M_Product_Group_ID
+                ,'M_Product_Group_ID' as field,true As isview
+                FROM adempiere.m_product p     
+                LEFT JOIN adempiere.M_Product_Group marca ON marca.M_Product_Group_ID=p.M_Product_Group_ID   
+                INNER JOIN LATERAL   
+                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
+                    FROM adempiere.m_storage stg  
+                    WHERE stg.M_Product_ID = p.M_Product_ID 
+                ) AS total  ON true 
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
+                    AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
+                    AND  total.total > 0 `;
+            break;
+            case 'categoria':
+                query = `SELECT DISTINCT(categoria.name) AS categoria,categoria.M_Product_Category_ID
+                ,'M_Product_Category_ID' as field,true As isview,false As is_active
+                 FROM adempiere.m_product p     
+                INNER JOIN adempiere.M_Product_Category categoria ON categoria.M_Product_Category_ID=p.M_Product_Category_ID
+                INNER JOIN LATERAL   
+                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
+                    FROM adempiere.m_storage stg  
+                    WHERE stg.M_Product_ID = p.M_Product_ID 
+                ) AS total  ON true 
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
+                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
+                AND  total.total > 0 `;
+            break;
+            case 'presentacion':
+                query = `SELECT DISTINCT(presentacion.name) AS presentacion,
+                presentacion.M_Presentation_ID,'M_Presentation_ID' as field,true As isview
+                FROM adempiere.m_product p     
+                INNER JOIN adempiere.M_Presentation presentacion ON presentacion.M_Presentation_ID=p.M_Presentation_ID
+                INNER JOIN LATERAL   
+                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
+                    FROM adempiere.m_storage stg  
+                    WHERE stg.M_Product_ID = p.M_Product_ID 
+                ) AS total  ON true 
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
+                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0
+                AND  total.total > 0 `;
+            break;
+            case 'intencidad':
+                query = `SELECT DISTINCT(intencidad.name) AS intencidad,
+                intencidad.M_Class_Intensity_ID,'M_Class_Intensity_ID' as field ,true As isview
+                FROM adempiere.m_product p     
+                INNER JOIN adempiere.M_Class_Intensity intencidad ON intencidad.M_Class_Intensity_ID=p.M_Class_Intensity_ID
+                INNER JOIN LATERAL   
+                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
+                    FROM adempiere.m_storage stg  
+                    WHERE stg.M_Product_ID = p.M_Product_ID 
+                ) AS total  ON true 
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
+                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0 
+                AND  total.total > 0 `;
+            break;
+            case 'sub_categoria':
+                query = `SELECT DISTINCT(sub_categoria.name) AS sub_categoria,sub_categoria.M_Product_Classification_ID
+                ,'M_Product_Classification_ID' as field,true As isview
+                FROM adempiere.m_product p     
+                INNER JOIN adempiere.M_Product_Classification sub_categoria ON sub_categoria.M_Product_Classification_ID=p.M_Product_Classification_ID  
+                INNER JOIN LATERAL   
+                (SELECT COALESCE (sum(stg.qtyonhand),0)::integer - COALESCE (sum(stg.qtyreserved),0)::integer as total  
+                    FROM adempiere.m_storage stg  
+                    WHERE stg.M_Product_ID = p.M_Product_ID 
+                ) AS total  ON true 
+                WHERE p.ad_client_id=1000000 AND p.isActive = 'Y' AND p.value LIKE 'P15%'   
+                AND adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) > 0 
+                AND sub_categoria.M_Product_Category_ID = $1
+                AND  total.total > 0 `;
+                values = [params.m_product_category_id];
+            break;
+        }
+        const result = await conexion.query(query, values)
+            .then(res => {
+                return {status:"success","data":res.rows};
+            }).catch( e => {
+                console.log(e);
+                return {status:"error","data":e.stack}; 
+            }
+        );
+        return result;
+    },
     async imgByValue(value) { 
         const values = [value]; 
         var query = fs.readFileSync("./models/AD/sql/product/imgByValue.sql","utf8");  

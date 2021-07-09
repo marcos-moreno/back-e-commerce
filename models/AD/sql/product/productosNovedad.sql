@@ -1,8 +1,14 @@
 SELECT * FROM (
     SELECT  
         total.total 
-        ,Mex_.Mex_quantytotal,mpg.name as category  
-        ,subcat.name AS model,p.name,p.value,p.description,p.help,cu.name as unidad   
+        ,categoria.name As categoria
+        ,sub_categoria.name As sub_categoria
+        ,marca.name As marca
+        ,presentacion.name As presentacion
+        ,intencidad.name As intencidad
+        ,false As showatribbutes
+        ,Mex_.Mex_quantytotal   
+        ,p.name,p.value,p.description,p.help,cu.name as unidad   
         ,(adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) * 1.16) AS l0
         ,adempiere.rf_pricelist_ecommerce(p.m_product_id, 1000024, now()::date)  AS sinIva 
         ,elements
@@ -11,6 +17,13 @@ SELECT * FROM (
         ,AdditionalInformation
         ,UseMode
     FROM adempiere.m_product p    
+
+    LEFT JOIN adempiere.M_Product_Category categoria ON categoria.M_Product_Category_ID=p.M_Product_Category_ID 
+    LEFT JOIN adempiere.M_Product_Classification sub_categoria ON sub_categoria.M_Product_Classification_ID=p.M_Product_Classification_ID
+    LEFT JOIN adempiere.M_Product_Group marca ON marca.M_Product_Group_ID=p.M_Product_Group_ID
+    LEFT JOIN adempiere.M_Presentation presentacion ON presentacion.M_Presentation_ID=p.M_Presentation_ID
+    LEFT JOIN adempiere.M_Class_Intensity intencidad ON intencidad.M_Class_Intensity_ID=p.M_Class_Intensity_ID
+
     LEFT JOIN adempiere.c_uom cu ON p.c_uom_id=cu.c_uom_id   
 	INNER JOIN RF_Ecommerce_NoveltyProduct novedad ON novedad.M_Product_ID = p.M_Product_ID AND novedad.isActive = 'Y'
     INNER JOIN LATERAL   

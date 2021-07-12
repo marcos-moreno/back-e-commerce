@@ -8,9 +8,8 @@ module.exports = {
         var query = fs.readFileSync("./models/AD/sql/product/productoGeneral.sql","utf8");  
         if (params.onliStock == true || params.onliStock == 'true') {
             query = query.replace("--#1","AND Mex_.Mex_quantytotal > 0");
-        }  
-
-        if (params.range =! undefined) {
+        }   
+        if (params.range != undefined) { 
             if (params.range.length == 2) {
                 query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND (${params.range[1]} + 1)`);
             }

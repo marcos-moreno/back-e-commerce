@@ -11,6 +11,7 @@ var preregistro = require('./controller/mongoose/ctlPreRegistro');
 var socioNegocio = require('./controller/mongoose/ctlSocioNegocio');
 var foro = require('./controller/mongoose/ctlForo');
 var queja = require('./controller/mongoose/ctlQuejaSugerencia');
+var SeguimientoPedido = require('./controller/AD/ctlSeguimientoPedido');
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ app.use('/preregistro', preregistro);
 app.use('/partner', socioNegocio); 
 app.use('/foro', foro);
 app.use('/queja', queja);
+app.use('/seguimientopedido', SeguimientoPedido);
 
 const mongoose = require('mongoose'); 
 

@@ -3,7 +3,7 @@ var fs = require('fs');
 
 module.exports = { 
      async search_orden(params) { 
-            const values = [params.code_entrega];  
+            const values = [params.no_orden];
             var query = fs.readFileSync("./models/AD/sql/order/search_st_orde.sql","utf8");  
             const result = await conexion.query(query, values)
                 .then(res => {
@@ -13,8 +13,6 @@ module.exports = {
                     return {status:"error","data":e.stack}; 
                 }
             );
-      
-        
         return result;
     }, 
 
@@ -69,32 +67,46 @@ module.exports = {
             }
         ); 
         return result;
-    }, 
-    
-    async novedades() {  
-        const values = [];  
-        var query = fs.readFileSync("./models/AD/sql/product/productosNovedad.sql","utf8");   
+    },  
+
+    async getEstados() { 
+        const values = []; 
+        var query = `
+            SELECT name,description,value 
+            FROM adempiere.AD_Ref_List 
+            WHERE AD_Reference_ID=1000017 AND isActive = 'Y'
+        `;  
         const result = await conexion.query(query, values)
-            .then(res => {
-                return {status:"success","data":res.rows};
-            }).catch( e => {
-                console.log(e);
-                return {status:"error","data":e.stack}; 
+        .then(res => {
+            return {status:"success","data":res.rows};
+            }
+        ).catch( e => {
+            return {status:"error","data":e.stack}; 
+            }     
+        );
+        return result;
+    },  
+    async insert_rf_ecommerce_orderstatus(parameters) { 
+        var query = `  
+            INSERT INTO adempiere.rf_ecommerce_orderstatus(
+                ad_client_id, ad_org_id, c_order_id, created, createdby, datetrx, isactive, m_inout_id,
+                rf_ecommerce_orderstatus_id, 
+                rf_statusorder, updated, updatedby)
+            VALUES (1000000, 0, $1, NOW()::DATE,1000035, NOW()::DATE, 'Y', $2, 
+                    (SELECT adempiere.nextidfunc((SELECT AD_Sequence_ID FROM adempiere.AD_Sequence WHERE Name = 'RF_Ecommerce_OrderStatus')::integer, 'N'))
+                    ,$3, NOW()::DATE,1000035);
+        `;
+        const result = await conexion.query(query, parameters)
+        .then(res => {
+            return {status:"success","data":res};
+            }
+        ).catch( e => {
+            return {status:"error","data":e.stack};
             }
         );
         return result;
-    }, 
-    async one(filter) {  
-        const values = [filter];  
-        var query = fs.readFileSync("./models/AD/sql/product/productoGeneral.sql","utf8");  
-        const result = await conexion.query(query, values)
-            .then(res => {
-                return {status:"success","data":res.rows};
-            }).catch( e => {
-                console.log(e);
-                return {status:"error","data":e.stack}; 
-            }
-        );
-        return result;
-    },    
+    },
+
+   
+        
 }   

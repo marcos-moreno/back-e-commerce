@@ -35,19 +35,33 @@ router.get('/get_auth', (req, res, next) => {
           for (let i = 0; i < sales.length; i++) { 
 
             // INI::::::::al cargar la orden se consultan los estados en ADempiere y se actualiza la orden.
-            if (sales[i].status_pay == 'pendiente' || sales[i].status_entrega == 'pendiente') {
-              const status_ov = await OrderModel.getStatus_order([sales[i].documentno]); 
-              if (status_ov.status == 'success') {
-                if (status_ov.data.ispaid == 'Y') { //::: valida si esta pagada la orden
-                  sales[i].status_pay = 'pagado';
-                  SaleOrder.updateOne({_id:sales[i]._id},{status_pay : sales[i].status_pay});   
+            try {
+              if (sales[i].status_pay == 'pendiente') {
+                const status_ov = await OrderModel.getStatus_order([sales[i].documentno]); 
+                if (status_ov.status == 'success') {
+                  if (status_ov.data.ispaid == 'Y') { //::: valida si esta pagada la orden
+                    sales[i].status_pay = 'pagado';
+                    SaleOrder.updateOne({_id:sales[i]._id},{status_pay : sales[i].status_pay});   
+                  }
                 }
-                if (status_ov.data.isdelivered == 'Y') { //::: valida si esta Entregada la orden
-                  sales[i].status_entrega = 'entregado';
-                  SaleOrder.updateOne({_id:sales[i]._id},{status_entrega : sales[i].status_entrega});   
+              } 
+              if (sales[i].status_pay != 'Cancelado') {
+                if (sales[i].status_entrega == 'pendiente') {
+                  const status_ov = await OrderModel.getStatus_order([sales[i].documentno]); 
+                  if (status_ov.status == 'success') { 
+                    if (status_ov.data.isdelivered == 'Y') { //::: valida si esta Entregada la orden
+                      sales[i].status_entrega = 'entregado';
+                      SaleOrder.updateOne({_id:sales[i]._id},{status_entrega : sales[i].status_entrega});   
+                    }
+                  }
                 }
+              }else{
+                sales[i].status_entrega = 'Cancelado';
+                SaleOrder.updateOne({_id:sales[i]._id},{status_entrega : sales[i].status_entrega});   
               }
-            } 
+            } catch (error) {
+              console.log(error);
+            }
             // FIN::::::::al cargar la orden se consultan los estados en ADempiere y se actualiza la orden.
 
             for (let index = 0; index < sales[i].productos.length; index++) {

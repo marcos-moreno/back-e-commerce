@@ -26,6 +26,29 @@ module.exports = {
         );
         return result;
     },
+
+    async getStatus_order(parameters) {
+        const values = parameters;  
+        var query = `SELECT 
+                        inv.isPaid,
+                        CASE WHEN SUM(lin.qtyinvoiced) = SUM(lin.qtydelivered) THEN 'Y' ELSE 'N' END As isdelivered
+                    FROM 
+                    adempiere.C_Invoice inv
+                    INNER JOIN adempiere.C_Order ov ON inv.C_Order_ID = ov.C_Order_ID 
+                        AND ov.DocumentNo = $1
+                    INNER JOIN C_OrderLine lin ON lin.C_Order_ID = ov.C_Order_ID
+                    GROUP BY inv.isPaid `;  
+        const result = await conexion.query(query, values)
+        .then(res => {
+            return {status:"success","data":res.rows[0]};
+            }
+        ).catch( e => {
+            return {status:"error","data":e.stack}; 
+            }     
+        );
+        return result;
+    }, 
+  
     async rf_invoiceLine_ecomers(parameters) {
         const values = parameters;  
         var query = "SELECT * FROM adempiere.rf_invoiceLine_ecomers($1,$2,$3);";  

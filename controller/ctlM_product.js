@@ -46,4 +46,15 @@ router.get('/getattributes', function (req, res, next) {
         }); 
 }); 
 
+router.get('/getesencia', function (req, res, next) {
+    productosModel
+        .getesencia()
+        .then(getesencias => { 
+            res.json(getesencias);
+        }).catch(err => { 
+            console.log(err);
+            return res.status(200).send({status:"error",data:err});
+        }); 
+}); 
+
 module.exports = router;

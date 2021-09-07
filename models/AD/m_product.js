@@ -2,9 +2,8 @@ const conexion = require("./conexion")
 var fs = require('fs');  
 
 module.exports = { 
-     async all(params) {  
-        const values = [params.filter]; 
-        // console.log(params.filter);
+     async all(params) {
+        const values = [params.filter];
         var query = fs.readFileSync("./models/AD/sql/product/productoGeneral.sql","utf8");  
         if (params.onliStock == true || params.onliStock == 'true') {
             query = query.replace("--#1","AND Mex_.Mex_quantytotal > 0");
@@ -14,8 +13,6 @@ module.exports = {
                 query = query.replace("--#2",`AND  l0::INTEGER BETWEEN ${params.range[0]} AND (${params.range[1]} + 1)`);
             }
         }
-      
-        
         // ::: Filtrar empresa 
         if (params.marcasfiltradas != "#" && params.marcasfiltradas != undefined) {
             query = query.replace("--#3",`AND p.M_Product_Group_ID IN (${params.marcasfiltradas})`);
@@ -36,19 +33,22 @@ module.exports = {
                     break;
             }  
         }
-        
+        // ::: Filtrar Escencias 
+        if (params.escencia_group != undefined) {
+            if (params.escencia_group != "#") {  
+                query = query.replace("--#7",`AND (p.m_class_essences_id IN (${params.escencia_group}) /*OR p.m_class_essences_id IS NULL*/)`);
+            }
+        }
         if (params.categorias_group != undefined) { 
             if (params.categorias_group != "#") {  
                 query = query.replace("--#5",`AND p.M_Product_Category_ID IN (${params.categorias_group})`); 
-            } 
+            }
         }
-
         if (params.sub_categorias_group != undefined) { 
             if (params.sub_categorias_group != "#") { 
                 query = query.replace("--#6",`AND p.M_Product_Classification_ID IN (${params.sub_categorias_group})`); 
-            } 
+            }
         }
- 
         if (params.ordenMenorP == 'true') {
             query = query.replace("ORDER BY value ASC",`ORDER BY l0 ASC`); 
         }
@@ -62,15 +62,13 @@ module.exports = {
             query = query.replace("****/",''); 
             query = query.replace("ORDER BY value ASC",`ORDER BY totalfac DESC`); 
         } 
-        // console.log(query);  
         const result = await conexion.query(query, values)
             .then(res => {
                 return {status:"success","data":res.rows};
             }).catch( e => {
                 console.log(e);
                 return {status:"error","data":e.stack}; 
-            }
-        );
+            });
         return result;
     }, 
     async novedades() {  
@@ -99,6 +97,25 @@ module.exports = {
         );
         return result;
     },   
+    
+    async getesencia() {
+        let values = []; 
+        var query = '';
+        query = `SELECT 
+                    description, isactive, m_class_essences_id, 
+                    name, value, false isview
+                FROM adempiere.m_class_essences
+                WHERE isactive = 'Y' AND ad_client_id = 1000000;`;
+        const result = await conexion.query(query, values)
+            .then(res => {
+                return {status:"success","data":res.rows};
+            }).catch( e => {
+                console.log(e);
+                return {status:"error","data":e.stack}; 
+            }
+        );
+        return result;
+    },
     async getattributes(params) {
         let values = []; 
         var query = '';  

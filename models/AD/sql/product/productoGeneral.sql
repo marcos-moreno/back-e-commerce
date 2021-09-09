@@ -19,6 +19,11 @@ SELECT * FROM (
         ,TechnicalCharacteristics
         ,AdditionalInformation
         ,UseMode
+        ,d.name As descuento_name
+		,d.flatdiscount As monto_descuento
+        ,CASE WHEN d.name IS NOT NULL 
+        THEN round((((adempiere.rf_pricelist_ecommerce(p.m_product_id,1000024, now()::date) * 1.16) / (100 - d.flatdiscount::NUMERIC)) * 100),2)
+        END AS costo_original
     FROM adempiere.m_product p    
     LEFT JOIN adempiere.c_uom cu ON p.c_uom_id=cu.c_uom_id   
     INNER JOIN LATERAL   
@@ -47,7 +52,7 @@ SELECT * FROM (
     LEFT JOIN adempiere.M_Product_Group marca ON marca.M_Product_Group_ID=p.M_Product_Group_ID
     LEFT JOIN adempiere.M_Presentation presentacion ON presentacion.M_Presentation_ID=p.M_Presentation_ID
     LEFT JOIN adempiere.M_Class_Intensity intencidad ON intencidad.M_Class_Intensity_ID=p.M_Class_Intensity_ID
-
+	LEFT JOIN RF_Discount AS d ON d.RF_Discount_ID = p.RF_Discount_ID AND NOW()::DATE BETWEEN datestart AND datefinish
     WHERE  
         p.ad_client_id=1000000   
         AND  total.total > 0 
